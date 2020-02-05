@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import {FlatList, List, ListItem, Text, StyleSheet } from 'react-native';
+import {FlatList, Text, StyleSheet } from 'react-native';
 
 class Red extends Component {
     constructor(props) {
