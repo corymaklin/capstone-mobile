@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
-import { Button, StyleSheet, Text, View } from 'react-native';
-import Foo from './Foo';
-import Red from './Red';
-import Search from './Search';
+import { FlatList, Item, Button, StyleSheet, Text, View } from 'react-native';
+// import Foo from './Foo';
+// import Red from './Red';
+// import Search from './Search';
+import { SearchBar } from 'react-native-elements';
 import Constants from 'expo-constants';
 import _ from 'lodash';
 
@@ -11,15 +12,20 @@ class App extends Component {
         super(props);
 
         this.state = {
-            searchQuery: ''
+            searchQuery: '',
+            students: []
         };
-        this.delayedFetchStudents = _.debounce(this.fetchStudents, 1000);
+        this.delayedFetchStudents = _.debounce(this.fetchStudents, 500);
     }
 
-    componentDidUpdate(prevProps, prevState) {
+    componentDidMount () {
+        this.fetchStudents();
+    }
+
+    componentDidUpdate (prevProps, prevState) {
         const { searchQuery } = this.state;
-        if (searchQuery != prevProps.searchQuery) {
-            this.search();
+        if (searchQuery != prevState.searchQuery) {
+            this.delayedFetchStudents();
         }
     }
 
@@ -27,9 +33,11 @@ class App extends Component {
         const { searchQuery } = this.state;
 
         try {
-            const response = await fetch('http://localhost:5000/students');
+            const response = await fetch(`http://localhost:5000/students/search?q=${searchQuery}`);
     
             const students = await response.json();
+
+            console.log(students);
 
             this.setState({
                 students
@@ -40,15 +48,43 @@ class App extends Component {
         }
     }
 
-    handleChannge = async searchQuery => {
+    _onPressButton = () => {
+        alert('You long-pressed the button!')
+    }
+
+    handleChange = searchQuery => {
         this.setState({ searchQuery });
     }
 
     render () {
+        const {
+            students,
+            searchQuery
+        } = this.state;
+
         return (
             <View style={ styles.container }>
-                <Search />
-                <Red />
+                <SearchBar
+                    placeholder="Type Here..."
+                    lightTheme
+                    round
+                    onChangeText={ this.handleChange }
+                    value={ searchQuery }
+                />
+                <FlatList
+                    data={ students }
+                    renderItem={({ item }) => (
+                        <Text
+                            style={ styles.item }
+                            onPress={ this._onPressButton }
+                        >
+                            { item.first_name }
+                        </Text>
+
+                        // <Item style={styles.item}>{ item.first_name }</Item>
+
+                    )}
+                />
             </View>
         ); 
     }
@@ -57,11 +93,16 @@ class App extends Component {
 export default App;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    // alignItems: 'center',
-    // justifyContent: 'center',
-    marginTop: Constants.statusBarHeight
-  },
+    container: {
+        flex: 1,
+        backgroundColor: '#fff',
+        // alignItems: 'center',
+        // justifyContent: 'center',
+        marginTop: Constants.statusBarHeight
+    },
+    item: {
+        padding: 10,
+        fontSize: 18,
+        height: 44
+    }
 });
